@@ -137,7 +137,7 @@ public class PracticeBSolver {
 	public static int getNearPrimeNumberIndex(int x, ArrayList<Integer> pNums) {
 		int length = pNums.size();
 		int max = pNums.get(length - 1); 
-		if (x > max) return 0;
+		if (x > max) return -1;
 
 		int index = -1;		
 		for(int i = x; i <= max; i++) {
@@ -164,17 +164,21 @@ public class PracticeBSolver {
 		if (index == -1) return num + "";
 		int length = pNums.size();
 		int pNum = 0;
+		int over = 0;
+		int start = 0;
 		for (int i = index; i < length; i++) {
 			pNum = pNums.get(i);
 			if (pNum > num) {
 				break;
 			}
-			for (int j = 0; j < pNum; j++) {
-				if ((A + j) % pNum == 0 && j + pNum < num) {
-					for (int k = j + pNum; k < num; k += pNum) {
-						unite(j, k);
-					}
-				}
+			over = (int)(A % pNum);
+			if (over == 0) {
+				start = 0;
+			} else {
+				start = pNum - over;
+			}
+			for (int k = start + pNum; k < num; k += pNum) {
+				unite(start, k);
 			}
 		}
 		int ret = 0;
