@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.ArrayList;
 
 public class PracticeBSolver {
 	static final boolean DEBUG = true;
@@ -77,10 +78,113 @@ public class PracticeBSolver {
 		return 0;
 	}
 
+	private static final int LIST_LENGTH = 1000000;
+	public static ArrayList<Integer> getPrimeNumbers() {
+		boolean[] flags = new boolean[LIST_LENGTH];
+		ArrayList<Integer> ret = new ArrayList<Integer>();
+
+		int a = 0, i = 0, j = 0;
+		for (a = 2; a < LIST_LENGTH; a++) {
+			if (flags[a] == true) {
+				continue;
+			}
+			ret.add(a);
+
+			for (i = a; i < LIST_LENGTH; i += a) {
+				flags[i] = true;
+			}
+		}
+		return ret;
+	}
+	
+	static int[] mP = null;
+	static int[] mR = null;
+
+	public static void init(int n) {
+		mP = new int[n];
+		mR = new int[n];
+		for (int i = 0; i < n; i++) {
+			mP[i] = i;
+			mR[i] = 0;
+		}
+	}
+
+	public static int find(int x) {
+		if (mP[x] == x) {
+			return x;
+		} else {
+			return mP[x] = find(mP[x]);
+		}
+	}
+	
+	public static void unite(int x, int y) {
+		x = find(x);
+		y = find(y);
+		if (x == y) return;
+		
+		if (mR[x] < mR[y]) {
+			mP[x] = y;
+		} else {
+			mP[y] = x;
+			if (mR[x] == mR[y]) mR[x]++;
+		}
+	}
+	
+	public static boolean same(int x, int y) {
+		return find(x) == find(y);
+	}
+
+	public static int getNearPrimeNumberIndex(int x, ArrayList<Integer> pNums) {
+		int length = pNums.size();
+		int max = pNums.get(length - 1); 
+		if (x > max) return 0;
+
+		int index = -1;		
+		for(int i = x; i <= max; i++) {
+			index = pNums.indexOf(i);
+			if (index >= 0) break;
+		}
+		return index;
+	}
+	
 	public static String calc(long A, long B, long P) {
 		print("A={" + A + "}, B={" + B + "}, P={" + P + "}");
+		long tempNum = B - A + 1;
+		if (tempNum > Integer.MAX_VALUE) {
+			return "0";
+		}
+		int num = (int)tempNum;
+		// can not unite any groups or can not solve the test case.
+		if (P > LIST_LENGTH || P > Integer.MAX_VALUE) {
+			return num + "";
+		}
+		init(num);
+		ArrayList<Integer> pNums = getPrimeNumbers();
+		int index = getNearPrimeNumberIndex((int)P, pNums);
+		if (index == -1) return num + "";
+		int length = pNums.size();
+		int pNum = 0;
+		for (int i = index; i < length; i++) {
+			pNum = pNums.get(i);
+			if (pNum > num) {
+				break;
+			}
+			for (int j = 0; j < pNum; j++) {
+				if ((A + j) % pNum == 0 && j + pNum < num) {
+					for (int k = j + pNum; k < num; k += pNum) {
+						unite(j, k);
+					}
+				}
+			}
+		}
+		int ret = 0;
+		for (int l = 0; l < num; l++) {
+			if (mP[l] == l) {
+				ret++;
+			}
+		}
 
-		return "0";
+		return ret + "";
 	}
 
 	public static void exec(String fileName) {
@@ -144,6 +248,7 @@ public class PracticeBSolver {
 			exec(fileName);
 		} catch (Exception e) {
 			print("failed to execute. error: {" + e + "}");
+			e.printStackTrace();
 		}
 		if (fileName == null) {
 			print("File name must be specified.");
